@@ -7,6 +7,7 @@
 char welcome[] = "Welcome to my universe"; //TITULO DE BIENVENIDA
 unsigned int texture; // ALMACENAMIENTO DE TEXTURA, EN CASO DE VARIAS SE USA ARRAY
 char background[] = "./background.bmp"; //IMAGEN A RENDERIZAR
+bool fullscreen = false; //ESTADO DE PANTALLA COMPLETA
 
 float Orange[3] = {0.890, 0.603, 0.207};
 float Yellow[3] = {0.929, 0.964, 0.156};
@@ -44,8 +45,8 @@ void printText(float x, float y, char* message){
 void Display(){
     glEnable(GL_DEPTH_TEST);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
-    glMatrixMode(GL_PROJECTION);
+    //El display manejarlo con MODELVIEW y el reshape manejarlo con el PROJECTION
+    glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     //Sun
 
@@ -277,7 +278,7 @@ void Display(){
     //Message
     printText(-0.3,0.9,welcome);
     glutSwapBuffers();
-    
+    //std::cin.getline(welcome,20);//usarlo con hilos
 }
 void Timer(int v){
     Mercury.setArcPosition();
@@ -321,16 +322,51 @@ void loadTexture(){
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,GL_REPEAT);
     glTexImage2D(GL_TEXTURE_2D, 0, 3, img.GetNumCols(), img.GetNumRows(),0,GL_RGB,GL_UNSIGNED_BYTE,img.ImageData());
 }
+void keyInput(unsigned char key, int x, int y){
+    switch (key){
+    case 27:
+        glutDestroyWindow(glutGetWindow());
+        exit(0);
+        break;
+    case 32:
+        fullscreen = !fullscreen;
+        if(fullscreen){
+            glutFullScreen();
+        }else{
+            glutLeaveFullScreen();
+        }
+    default:
+        break;
+    }
+}
+void Reshape(int x, int y){
+    glViewport(0, 0, x, y);
+    glMatrixMode(GL_PROJECTION); // MODELVIEW: permite conservar las proporciones, Proyection: las proporciones se adaptan
+    glLoadIdentity();
+    /*if(x<=y)
+        glOrtho(-50,50, -50*(GLfloat)y/(GLfloat)x, 50*(GLfloat)y/(GLfloat)x,-1,1);
+    else
+        glOrtho(-50*(GLfloat)x/(GLfloat)y, 50*(GLfloat)x/(GLfloat)y,-50,50,-1,1);
+    glMatrixMode(GL_MODELVIEW);*/
+    GLfloat formato = (GLfloat)x / (GLfloat)y;
+    if (x <= y) glOrtho (-1.0f, 1.0f, -1.0f / formato, 1.0f / formato, 1.0f, -1.0f);
+    else glOrtho (-1.0f * formato, 1.0f * formato, -1.0f, 1.0f, 1.0f, -1.0f);
+    //glLoadIdentity();
+}
+
 int main(int argc, char** argv){
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowPosition(200, 200);
-    glutInitWindowSize(800, 800);
+    glutInitWindowSize(500, 500);
     glutCreateWindow("examen");
     loadTexture();
+    Reshape;
     glutDisplayFunc(Display);
+    glutReshapeFunc(Reshape);
     glutTimerFunc(100, Timer, 0);
     glutMouseFunc(Click);
+    glutKeyboardFunc(keyInput);
     glutMainLoop();
     return 0;
 }
