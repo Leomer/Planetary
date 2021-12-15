@@ -12,6 +12,7 @@ class Planet{
         int steps = 0;
         float arcPosition = 0;
         bool orientation = false;
+
     public:
         Planet(float, float, int, bool);
         float getPlanetRadiusX();
@@ -25,6 +26,7 @@ class Planet{
         void setArcPosition();
         float getRadius();
         void area(float, float);
+
 };
 
 #endif
